@@ -1,0 +1,122 @@
+[
+  {
+    "kind": "brick",
+    "seed": 1,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.4068965517241379,
+    "luminanceStdDev": 5.724171847390209
+  },
+  {
+    "kind": "brick",
+    "seed": 91,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.41843971631205673,
+    "luminanceStdDev": 5.497015623990386
+  },
+  {
+    "kind": "brick",
+    "seed": 9999,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.41843971631205673,
+    "luminanceStdDev": 5.6809024023444215
+  },
+  {
+    "kind": "plaster",
+    "seed": 1,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.1935483870967742,
+    "luminanceStdDev": 2.743550112618627
+  },
+  {
+    "kind": "plaster",
+    "seed": 91,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.1935483870967742,
+    "luminanceStdDev": 2.7335453365404834
+  },
+  {
+    "kind": "plaster",
+    "seed": 9999,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.1935483870967742,
+    "luminanceStdDev": 2.733993667294757
+  },
+  {
+    "kind": "cream",
+    "seed": 1,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.16666666666666666,
+    "luminanceStdDev": 2.743550063259177
+  },
+  {
+    "kind": "cream",
+    "seed": 91,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.16666666666666666,
+    "luminanceStdDev": 2.7335452870289916
+  },
+  {
+    "kind": "cream",
+    "seed": 9999,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.16666666666666666,
+    "luminanceStdDev": 2.733993617541223
+  },
+  {
+    "kind": "concrete",
+    "seed": 1,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.060810810810810814,
+    "luminanceStdDev": 2.7435500947990223
+  },
+  {
+    "kind": "concrete",
+    "seed": 91,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.060810810810810814,
+    "luminanceStdDev": 2.733545318625049
+  },
+  {
+    "kind": "concrete",
+    "seed": 9999,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.060810810810810814,
+    "luminanceStdDev": 2.733993649498692
+  },
+  {
+    "kind": "blue",
+    "seed": 1,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.020833333333333332,
+    "luminanceStdDev": 2.743550101358801
+  },
+  {
+    "kind": "blue",
+    "seed": 91,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.020833333333333332,
+    "luminanceStdDev": 2.7335453251203337
+  },
+  {
+    "kind": "blue",
+    "seed": 9999,
+    "pixels": 262144,
+    "saturated": 0,
+    "maxSaturation": 0.020833333333333332,
+    "luminanceStdDev": 2.733993655966964
+  }
+]
