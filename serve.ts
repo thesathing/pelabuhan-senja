@@ -1,17 +1,2 @@
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import { resolve, extname, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
-const root = fileURLToPath(new URL('./game/', import.meta.url));
-const mime: Record<string,string> = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.jpg':'image/jpeg','.png':'image/png'};
-const server = createServer(async (req,res) => {
-  try {
-    const url = new URL(req.url || '/', 'http://localhost');
-    const name = decodeURIComponent(url.pathname);
-    const file = resolve(root, '.' + (name === '/' ? '/index.html' : name));
-    if (!file.startsWith(resolve(root) + sep)) { res.writeHead(403).end(); return; }
-    const bytes = await readFile(file);
-    res.writeHead(200, {'Content-Type':mime[extname(file)] || 'application/octet-stream','Cache-Control':'no-store'}).end(bytes);
-  } catch { res.writeHead(404).end('Not found'); }
-});
-server.listen(Number(process.env.PORT || 8080), '0.0.0.0', () => console.log('Pelabuhan Senja at http://localhost:' + (process.env.PORT || 8080)));
+import { createServer } from 'node:http';import { createReadStream,statSync } from 'node:fs';import { extname,join,normalize } from 'node:path';
+const root=join(process.cwd(),'game'),types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.jpg':'image/jpeg','.min.js':'text/javascript'};const server=createServer((req,res)=>{let path=decodeURIComponent((req.url||'/').split('?')[0]);if(path==='/')path='/index.html';const file=normalize(join(root,path));if(!file.startsWith(root)){res.writeHead(403).end();return}try{const stat=statSync(file);if(!stat.isFile())throw Error();res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream','Cache-Control':'no-store'});createReadStream(file).pipe(res)}catch{res.writeHead(404).end('Not found')}});server.listen(8080,'0.0.0.0',()=>console.log('Pelabuhan Senja: http://localhost:8080'));
