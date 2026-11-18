@@ -1,1 +1,8 @@
-{"name":"pelabuhan-senja","version":"1.0.0","private":true,"type":"module","scripts":{"serve":"node serve.ts","test":"node tests/play.mjs","package":"node main.ts"},"devDependencies":{"@types/node":"^26.6.6","playwright":"^1.56.1","typescript":"^7.0.2"}}
+{
+  "name": "pelabuhan-senja",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
