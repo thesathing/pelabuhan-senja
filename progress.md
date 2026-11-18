@@ -1,0 +1,13 @@
+Original prompt: Build PELABUHAN SENJA for make.fun gta6-01 from scratch in this session: original three.js coastal crime world, driving/walking, traffic/civilians, theft/wanted/police, combat, five story missions, HUD/minimap, menus/save, procedural audio, four deterministic screenshots, static packaging and dossier, browser verification and a git commit. Read only the authorized kit plumbing and mechanically copy the authorized Three.js vendor pair; do not inspect another game's source or session history.
+
+Design written before game code. Loaded the seven requested game-development skills.
+
+Implemented the static three.js world, forty buildings, market, dock cranes and boats, lighthouse ramp, twelve AI traffic cars and twenty civilians. Added player walking/jump/sprint, vehicle acceleration/steering/reverse/brake, car theft with fleeing driver, 0–5 wanted stars, car/foot police, line-of-sight decay, paid lay-low, pistol/punch/reload, supplies and five mission checkpoints. HUD/minimap, local saving, difficulty, pause, retry, victory/free roam, procedural sound and deterministic shots are connected.
+
+Browser verification: full Chromium works; the downloaded headless-shell crashed on this host. The installed skill client runs via a repository-local launcher that resolves Playwright and selects the working Chromium channel. Tests use keyboard actions and deterministic advanceTime; later mission fixtures position actors to isolate triggers. Main sequence verified all five chapters and save/continue with zero console, failed-request or external-request errors. Final results: 61/61 browser checks and 82/82 packaging checks; TypeScript check passed. All final suites exited 0. See VERIFICATION.md for artifact sizes and limitations.
+
+Rendering optimization batches static meshes and vehicle body meshes by material. Screenshot mode renders a fixed state; Start releases it. Tests using ?test explicitly step the simulation; regular play uses requestAnimationFrame.
+
+Visual inspection limitation: vision_analyze repeatedly returned 403 client_not_allowed, including an independent inspection attempt. Real browser screenshots were captured unedited and their dimensions, sizes, nonempty pixel data and deterministic state were checked. Do not describe these as visually reviewed.
+
+Vendor constraint: required three.js copies retain upstream URL text (documentation and XHTML namespace) and an original-filename comment mentioning three.core.js. The files are unchanged; actual module specifiers use ./three.core.min.js, and browser request tracing reports no external requests. Authored game files contain no HTTP(S) URLs. This is an explicit literal-URL exception caused by preserving the authorized vendor pair.
