@@ -1,2 +1,4 @@
-out/
 node_modules/
+out/
+test-artifacts/
+.DS_Store
