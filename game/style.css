@@ -1,17 +1,112 @@
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1b1030;color:#f6f0dd;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}body{position:relative}#scene{display:block;width:100%;height:100%;outline:0}#hud{position:absolute;inset:0;pointer-events:none;text-shadow:0 2px 8px #0a1118}.hidden{display:none!important}
-#mission-card{position:absolute;left:26px;top:22px;width:360px;background:#120a24d9;border:1px solid #ff5fa266;border-left:4px solid #ff5fa2;border-radius:8px;padding:12px 14px;box-shadow:0 8px 32px #0a0618cc}.mission-top{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:800;letter-spacing:1px;color:#ff8ad0}#mission-card #district{color:#ffd23d}#mission-card #clock{color:#fff}.mission-top span+span{white-space:nowrap}#objective{font-size:15px;font-weight:700;margin:7px 0 9px;line-height:1.35;color:#fff}.stage-bar{height:7px;background:#2a1a4e;border-radius:4px;overflow:hidden}#stage-fill{height:100%;width:0;background:linear-gradient(90deg,#ff5fa2,#ffd23d);border-radius:4px;transition:width .3s}.stage-row{display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:.6px;color:#c9b8ff;margin-top:6px}#stage-row #next{color:#7dd8ff}
-#police-list{position:absolute;left:26px;top:158px;width:360px;background:#120a24d9;border:1px solid #37e0ff55;border-left:4px solid #37e0ff;border-radius:8px;padding:10px 14px;box-shadow:0 8px 32px #0a0618cc}#police-head{font-size:11px;font-weight:800;letter-spacing:1px;color:#7dd8ff;margin-bottom:6px}.police-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;padding:3px 0;color:#fff}.police-dist{color:#ffd23d}.police-status{font-size:10px;letter-spacing:.8px;padding:2px 7px;border-radius:4px}.police-status.ramming{background:#ff4848;color:#fff}.police-status.pursuit{background:#ffd23d;color:#1b1030}.police-status.roadblock{background:#37e0ff;color:#1b1030}
-#top-right{position:absolute;right:26px;top:22px;text-align:right}#money{font-size:30px;font-weight:900;color:#ffd23d;text-shadow:0 0 18px #ff5fa288}#wanted{font-size:19px;letter-spacing:3px;color:#ff5fa2;margin:2px 0 6px}.health-bar{width:150px;height:6px;background:#2a1a4e;border-radius:4px;overflow:hidden;margin-left:auto}#health-fill{height:100%;width:100%;background:linear-gradient(90deg,#ff5fa2,#ff8a3d)}#health{font-size:11px;font-weight:800;color:#f4846c;margin-top:4px}#weapon-slots{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}.slot{font-size:11px;font-weight:800;letter-spacing:.5px;color:#fff;background:#120a24d9;border:1px solid #ff5fa266;border-radius:5px;padding:6px 9px}.slot.locked{color:#8a7aa8;border-color:#8a7aa855}
-#speedo{position:absolute;right:26px;bottom:26px;text-align:right}#radio-line{font-size:12px;font-weight:700;color:#ff8ad0;margin-bottom:2px}.speed-row{display:flex;align-items:baseline;justify-content:flex-end;gap:8px}#speed{font-size:56px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 24px #ff5fa266}.speed-unit{font-size:13px;font-weight:800;color:#c9b8ff}#gear{font-size:13px;font-weight:900;color:#1b1030;background:#37e0ff;border-radius:5px;padding:3px 8px}
-#dialogue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(620px,72vw);display:flex;gap:12px;align-items:center;background:#120a24e6;border:1px solid #ff5fa266;border-radius:10px;padding:10px 14px;box-shadow:0 8px 32px #0a0618cc}#portrait{width:64px;height:64px;flex:none;border-radius:6px}.dialogue-body{min-width:0}#dialogue-name{font-size:11px;font-weight:900;letter-spacing:1.5px;color:#ffd23d;margin-bottom:3px}#dialogue-text{font-size:14px;font-weight:600;line-height:1.4;color:#fff}
-#minimap-wrap{position:absolute;left:26px;bottom:26px;width:172px}#map{width:172px;height:172px;border-radius:50%;border:3px solid #ff5fa2;background:#24323c;box-shadow:0 0 24px #ff5fa255,0 8px 32px #10161b99}#respect{font-size:11px;font-weight:800;letter-spacing:1px;color:#7dd8ff;margin:8px 0 4px;text-align:center}.respect-bar{height:6px;background:#2a1a4e;border-radius:4px;overflow:hidden}#respect-fill{height:100%;width:0;background:linear-gradient(90deg,#37e0ff,#ff5fa2)}#hint{font-size:10px;color:#c9b8ff;margin-top:8px;text-align:center;line-height:1.5}
-#citymap{position:absolute;inset:0;background:#0d071add;z-index:5;display:flex;flex-direction:column;padding:22px 30px;pointer-events:auto;color:#f6f0dd}.map-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.map-title{font-size:26px;font-weight:900;letter-spacing:1px;color:#ff5fa2}.map-title-light{color:#fff}.map-close{font-size:12px;font-weight:700;color:#c9b8ff}.map-body{flex:1;display:flex;gap:22px;min-height:0}.map-side{width:250px;flex:none;overflow:auto}.map-section{font-size:12px;font-weight:900;letter-spacing:2px;color:#37e0ff;border-left:4px solid #37e0ff;padding-left:8px;margin:6px 0 10px}#map-jobs{list-style:none;margin:0 0 18px;padding:0}#map-jobs li,#map-current{display:flex;align-items:center;gap:8px;background:#1b1030cc;border:1px solid #ff5fa233;border-radius:6px;padding:9px 10px;margin-bottom:6px;font-size:12px}#map-jobs li.current{border-color:#ff5fa2;background:#2a1445cc}#map-jobs li.locked{opacity:.45}.job-num{flex:none;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;background:#ff5fa2;color:#fff;font-weight:900;font-size:12px}.job-name{flex:1;font-weight:800;min-width:0}.job-cash{color:#ffd23d;font-weight:800}.job-status{color:#7dd8ff;font-size:11px;font-weight:700}#map-current{flex-wrap:wrap}#map-current .job-status{flex-basis:100%;color:#fff;font-weight:600;line-height:1.4}#map-stats{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#c9b8ff;margin-top:14px}#map-stats b{color:#ffd23d}#bigmap{flex:1;min-width:0;border:1px solid #ff5fa266;border-radius:10px;background:#1d4e6b;box-shadow:0 8px 40px #00000088}.map-legend{list-style:none;margin:0;padding:0;font-size:13px;line-height:2.1;color:#e8e2f5}
-.panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(90deg,#1b103091,#2a144544 55%,#1b103055);text-align:center;padding:28px}.panel .eyebrow{font-size:12px;letter-spacing:3px;font-weight:800;color:#ff8ad0;margin-bottom:14px}.panel h1{font-size:clamp(50px,8vw,94px);line-height:.86;letter-spacing:0;margin:0;color:#fff5df;text-align:center;text-shadow:0 0 34px #ff5fa2aa,0 5px 32px #14252c}.panel .sub{font-size:17px;color:#ffd9ec;margin:20px 0 6px}.panel #intro{font-size:14px;color:#edf0e7;max-width:450px;line-height:1.55;margin:4px 0 20px}.difficulty{display:flex;gap:8px;margin:0 0 15px}.difficulty button,.primary,.secondary{font:inherit;font-weight:800;letter-spacing:1px;color:#f5e9cf;border:1px solid #ff5fa266;background:#1b1030b8;padding:11px 17px;cursor:pointer}.difficulty .selected{background:linear-gradient(90deg,#ff5fa2,#7a3fd4);color:#fff;border-color:#ff8ad0}.primary{background:linear-gradient(90deg,#ff5fa2,#7a3fd4);color:#fff;border-color:#ff8ad0;padding:13px 36px}.secondary{margin-top:8px}.controls{font-size:10px;line-height:1.8;letter-spacing:.4px;color:#e4e2d6;margin-top:20px}.panel.end{background:#0d071acc}.panel.end h2{font-size:38px;margin:0 0 10px}.panel.end p{margin:0 0 24px;color:#e4d6b9}#toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);font-size:14px;font-weight:800;color:#ffe2a3;text-shadow:0 2px 8px #111;pointer-events:none;opacity:0;transition:opacity .25s}@media(max-width:700px){#mission-card,#police-list{width:280px;left:12px;top:12px}#police-list{top:150px}#top-right{right:12px;top:12px}#money{font-size:22px}#speed{font-size:38px}#minimap-wrap{left:12px;bottom:12px;width:120px}#map{width:120px;height:120px}#dialogue{width:86vw;bottom:12px}.panel h1{font-size:54px}.controls{font-size:9px}#citymap{padding:12px}.map-side{width:170px}#bigmap{width:100%}}
-body.shot-start #title{inset:0 auto 0 0;width:46vw;align-items:flex-start;text-align:left;padding-left:6vw;background:linear-gradient(90deg,#1b1030d9,#2a144566 70%,transparent)}
-body.shot-start #title h1,body.shot-start #title .sub,body.shot-start #title #intro{text-align:left}
-body.shot-victory #overlay{justify-content:flex-start;align-items:flex-start;padding-top:26px;background:linear-gradient(180deg,#1b1030d9,#2a144555 55%,transparent)}
-body.shot-victory #mission-card,body.shot-victory #police-list{display:none!important}
-body.shot-victory #overlay .panel.end{position:relative;inset:auto;width:min(520px,80vw);margin-left:5vw;background:#0d071ad9;border:1px solid #ff5fa255;padding:16px 24px}
-body.shot-victory .topline,body.shot-victory #objective{display:none}
-body.shot-victory #overlay .panel.end h2{font-size:30px}
-body.shot-victory #overlay .panel.end p{margin:0 0 14px}
+/* PELABUHAN SENJA — neon-dusk UI base. Parts 2-4 fill in the HUD, title
+   screen and city map; this file only sets up the full-screen canvas and the
+   shared neon panel look. */
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1030; }
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#hud, #title { position: fixed; inset: 0; pointer-events: none; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #f5eefc; }
+.panel {
+  background: rgba(18, 8, 31, 0.78);
+  border: 1px solid rgba(255, 79, 216, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 0 24px rgba(255, 79, 216, 0.25);
+  backdrop-filter: blur(2px);
+}
+.neon { color: #ffe9f8; text-shadow: 0 0 12px #ff4fd8, 0 0 32px rgba(255, 79, 216, 0.6); }
+.hud-btn {
+  pointer-events: auto;
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffe9f8;
+  background: linear-gradient(180deg, #ff4fd8, #b03080);
+  border: 1px solid #ff8ce6;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(255, 79, 216, 0.45);
+}
+.hud-btn.active { outline: 2px solid #ffd34e; outline-offset: 2px; }
+
+/* --- Mission card, top-left. --- */
+.hud-mission { position: absolute; top: 14px; left: 14px; width: 300px; padding: 12px 14px; }
+.hud-chapter { font-size: 11px; letter-spacing: 0.2em; color: #ffd34e; font-weight: 700; }
+.hud-title { font-size: 20px; font-weight: 800; letter-spacing: 0.06em; margin: 2px 0 6px; }
+.hud-objective { font-size: 13px; line-height: 1.35; color: #e8ddf5; }
+.hud-stagebar { height: 6px; background: rgba(255, 255, 255, 0.14); border-radius: 3px; margin: 8px 0 4px; overflow: hidden; }
+.hud-stagefill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff4fd8, #ffd34e); transition: width 0.3s; }
+.hud-stage { font-size: 11px; letter-spacing: 0.08em; color: #ffb3ec; }
+.hud-next { font-size: 11px; letter-spacing: 0.08em; color: #9fd8ff; margin-top: 2px; }
+
+/* --- Police list, under the mission card. --- */
+.hud-police { position: absolute; top: 178px; left: 14px; width: 300px; padding: 10px 14px; font-size: 12px; }
+.hud-police-head { font-weight: 700; letter-spacing: 0.12em; color: #ffb3ec; margin-bottom: 4px; }
+.hud-police-row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; color: #e8ddf5; }
+.hud-status-RAMMING { color: #ff5a5a; font-weight: 800; }
+.hud-status-PURSUIT { color: #ffd34e; font-weight: 700; }
+.hud-status-ROADBLOCK { color: #ff9a3d; font-weight: 700; }
+.hud-status-PATROL { color: #9fd8ff; }
+
+/* --- Cash / wanted / weapons, top-right. --- */
+.hud-cash { position: absolute; top: 14px; right: 14px; padding: 10px 14px; text-align: right; min-width: 170px; }
+.hud-cash-amount { font-size: 26px; font-weight: 800; color: #ffd34e; }
+.hud-wanted { font-size: 18px; letter-spacing: 0.2em; color: #ff5a5a; }
+.hud-health { height: 5px; background: rgba(255, 255, 255, 0.14); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.hud-healthfill { height: 100%; background: #7ddc8a; }
+.hud-health-label { font-size: 10px; letter-spacing: 0.14em; color: #b9f5c0; margin-top: 3px; }
+.hud-weapons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.hud-weapon { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 7px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 5px; color: #cfc4e0; }
+.hud-weapon.active { border-color: #ff4fd8; color: #ffe9f8; background: rgba(255, 79, 216, 0.25); }
+
+/* --- Speed + radio, bottom-right. --- */
+.hud-speed { position: absolute; right: 16px; bottom: 14px; text-align: right; }
+.hud-radio { font-size: 12px; letter-spacing: 0.1em; color: #ffb3ec; }
+.hud-speed-num { font-size: 52px; font-weight: 800; line-height: 0.95; color: #ffe9f8; text-shadow: 0 0 18px rgba(255, 79, 216, 0.7); }
+.hud-speed-unit { font-size: 12px; letter-spacing: 0.3em; color: #cfc4e0; }
+.hud-speed-mode { font-size: 11px; letter-spacing: 0.2em; color: #9fd8ff; margin-top: 2px; }
+
+/* --- Minimap + respect, bottom-left. --- */
+.hud-minimap-wrap { position: absolute; left: 16px; bottom: 46px; width: 168px; height: 168px; border-radius: 50%; border: 3px solid #ff4fd8; box-shadow: 0 0 22px rgba(255, 79, 216, 0.55); overflow: hidden; background: #12081f; }
+.hud-minimap-wrap canvas { display: block; width: 168px; height: 168px; }
+.hud-respect { position: absolute; left: 16px; bottom: 14px; width: 168px; }
+.hud-respect-label { font-size: 11px; letter-spacing: 0.16em; color: #ffb3ec; }
+.hud-respect-bar { height: 5px; background: rgba(255, 255, 255, 0.14); border-radius: 3px; margin-top: 3px; overflow: hidden; }
+.hud-respect-fill { height: 100%; background: linear-gradient(90deg, #ff4fd8, #ffd34e); }
+
+/* --- Dialogue card, bottom-center. --- */
+.hud-dialogue { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; padding: 10px 14px; max-width: 520px; }
+.hud-portrait { border-radius: 6px; border: 1px solid rgba(255, 79, 216, 0.5); flex: none; }
+.hud-dialogue-speaker { font-size: 12px; font-weight: 800; letter-spacing: 0.14em; color: #ffd34e; }
+.hud-dialogue-text { font-size: 14px; line-height: 1.4; }
+
+/* --- Center cards (complete / failed / paused). --- */
+.hud-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 26px 34px; text-align: center; min-width: 380px; pointer-events: auto; }
+.hud-center-kicker { font-size: 11px; letter-spacing: 0.3em; color: #ffd34e; font-weight: 700; }
+.hud-center-title { font-size: 30px; font-weight: 800; letter-spacing: 0.08em; margin: 6px 0; }
+.hud-center-text { font-size: 14px; color: #e8ddf5; margin-bottom: 14px; }
+
+/* --- City map overlay. --- */
+.hud-map { position: absolute; inset: 4%; display: flex; gap: 16px; padding: 18px; pointer-events: auto; }
+.hud-map canvas { border-radius: 8px; border: 1px solid rgba(255, 79, 216, 0.4); }
+.hud-map-side { flex: 1; display: flex; flex-direction: column; }
+.hud-map-title { font-size: 18px; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 10px; }
+.hud-map-job { display: flex; gap: 8px; align-items: baseline; padding: 7px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 13px; }
+.hud-map-job-num { font-weight: 800; color: #ffd34e; }
+.hud-map-job-title { flex: 1; }
+.hud-map-job-status { font-weight: 700; letter-spacing: 0.08em; color: #9fd8ff; }
+.hud-map-legend { font-size: 11px; color: #cfc4e0; margin-top: 10px; line-height: 1.5; }
+.hud-map-stats { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; font-weight: 700; margin-top: 12px; color: #ffe9f8; }
+
+/* --- Title screen. --- */
+#title { display: block; }
+#title .title-inner { pointer-events: auto; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: min(560px, 90vw); }
+/* Dark halo under the neon glow: the title sits over the bright sun disc
+   in the cover shot, so the text needs its own dark shadow to stay readable. */
+.title-kicker { font-size: 12px; letter-spacing: 0.34em; color: #ffd34e; font-weight: 700; text-shadow: 0 1px 6px rgba(10, 4, 20, 0.95), 0 2px 10px rgba(10, 4, 20, 0.9); }
+.title-main { font-size: 64px; font-weight: 900; line-height: 0.95; margin: 8px 0; text-shadow: 0 2px 0 rgba(10, 4, 20, 0.9), 0 4px 18px rgba(10, 4, 20, 0.95), 0 0 12px #ff4fd8, 0 0 32px rgba(255, 79, 216, 0.6); }
+.title-tag { font-size: 16px; color: #e8ddf5; margin-bottom: 8px; text-shadow: 0 1px 6px rgba(10, 4, 20, 0.95), 0 2px 10px rgba(10, 4, 20, 0.9); }
+.title-story { font-size: 14px; line-height: 1.5; color: #cfc4e0; margin: 0 0 16px; text-shadow: 0 1px 6px rgba(10, 4, 20, 0.95); }
+.title-diff { margin-bottom: 8px; }
+.title-start { font-size: 16px; padding: 12px 30px; }
+.title-controls { font-size: 11px; letter-spacing: 0.08em; color: #9a8fb5; margin-top: 16px; line-height: 1.7; }
