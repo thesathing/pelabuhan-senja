@@ -1,48 +1,211 @@
-export class Soundscape{
-constructor(){this.ctx=null;this.master=null;this.lastEngine=0;this.siren=null;this.sirenTimer=0;this.sirenHigh=false;this.radioTimer=0;this.radioStep=0;this.lastScreech=0;this.noiseBuf=null}
-start(){if(this.ctx)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;this.ctx=new C();this.master=this.ctx.createGain();this.master.gain.value=.13;this.master.connect(this.ctx.destination);const osc=this.ctx.createOscillator(),gain=this.ctx.createGain();osc.type='triangle';osc.frequency.value=74;gain.gain.value=.022;osc.connect(gain);gain.connect(this.master);osc.start();this.ambience={osc,gain};
-  // Shared noise buffer for tire screeches.
-  const len=this.ctx.sampleRate*.3,buf=this.ctx.createBuffer(1,len,this.ctx.sampleRate),d=buf.getChannelData(0);
-  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
-  this.noiseBuf=buf;
+// PELABUHAN SENJA — procedural WebAudio (no assets, no network).
+// The AudioContext is created ONLY after a user gesture (unlock()).
+// In Node (no window / AudioContext) createAudioEngine() returns a no-op
+// stub, so the game logic and tests never touch the audio hardware.
+
+// A-minor pentatonic, one octave up from A4 (440 Hz): A C D E G A.
+export const PENTATONIC = [440.0, 523.25, 587.33, 659.25, 783.99, 880.0];
+export const RADIO_PATTERN = [0, 2, 4, 5, 4, 2, 1, 2]; // indexes into PENTATONIC
+export const RADIO_STEP_SECONDS = 0.28;
+
+// Engine hum: 40 Hz at rest rising with speed.
+export function engineFreq(speedMs) {
+  return 40 + Math.max(0, speedMs) * 3.5;
 }
-tone(freq,duration=.13,wave='sine',volume=.13){if(!this.ctx)return;const o=this.ctx.createOscillator(),g=this.ctx.createGain(),now=this.ctx.currentTime;o.type=wave;o.frequency.setValueAtTime(freq,now);o.frequency.exponentialRampToValueAtTime(Math.max(38,freq*.48),now+duration);g.gain.setValueAtTime(volume,now);g.gain.exponentialRampToValueAtTime(.001,now+duration);o.connect(g);g.connect(this.master);o.start(now);o.stop(now+duration)}
-note(freq,duration=.5,volume=.028){if(!this.ctx)return;const o=this.ctx.createOscillator(),g=this.ctx.createGain(),now=this.ctx.currentTime;o.type='triangle';o.frequency.value=freq;g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(volume,now+.04);g.gain.exponentialRampToValueAtTime(.001,now+duration);o.connect(g);g.connect(this.master);o.start(now);o.stop(now+duration+.05)}
-shot(){this.tone(180,.19,'sawtooth',.22)}impact(){this.tone(92,.16,'triangle',.18)}pickup(){this.tone(510,.18,'sine',.1)}blip(){this.tone(660,.07,'sine',.08)}engine(speed){if(!this.ctx||!this.ambience)return;const t=this.ctx.currentTime;if(t-this.lastEngine<.08)return;this.lastEngine=t;this.ambience.osc.frequency.setTargetAtTime(62+speed*7,t,.06)}
-// Tire screech: short filtered noise burst, quiet, throttled.
-screech(){if(!this.ctx||!this.noiseBuf)return;const t=this.ctx.currentTime;if(t-this.lastScreech<.35)return;this.lastScreech=t;const src=this.ctx.createBufferSource();src.buffer=this.noiseBuf;const bp=this.ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=950;bp.Q.value=1.1;const g=this.ctx.createGain();g.gain.setValueAtTime(.13,t);g.gain.exponentialRampToValueAtTime(.001,t+.28);src.connect(bp);bp.connect(g);g.connect(this.master);src.start(t);src.stop(t+.3)}
-// Per-frame audio director: two-tone siren while wanted, quiet radio
-// arpeggio while driving. Called from the game loop; silent before start().
-update(dt,state){
-  if(!this.ctx)return;
-  const t=this.ctx.currentTime;
-  if(state.wanted>0){
-    if(!this.siren){
-      const o=this.ctx.createOscillator(),g=this.ctx.createGain();
-      o.type='sine';o.frequency.value=660;g.gain.value=.04;
-      o.connect(g);g.connect(this.master);o.start();
-      this.siren={osc:o,gain:g};this.sirenTimer=0;this.sirenHigh=false;
-    }
-    this.sirenTimer+=dt;
-    if(this.sirenTimer>.45){
-      this.sirenTimer=0;this.sirenHigh=!this.sirenHigh;
-      this.siren.osc.frequency.setTargetAtTime(this.sirenHigh?920:660,t,.06);
-    }
-  }else if(this.siren){
-    try{this.siren.osc.stop()}catch(e){}
-    this.siren=null;
-  }
-  if(state.driving){
-    this.radioTimer-=dt;
-    if(this.radioTimer<=0){
-      this.radioTimer=.27;
-      // A minor pentatonic walk, up then down, quiet under the engine.
-      const scale=[220,261.63,293.66,329.63,392,440,392,329.63,293.66,261.63];
-      this.note(scale[this.radioStep%scale.length],.5,.026);
-      this.radioStep++;
-    }
-  }else{
-    this.radioTimer=0;
-  }
+
+// Two-tone police siren: 750 Hz and 1000 Hz alternating every 0.4 s.
+export function sirenToneAt(timeSeconds) {
+  return Math.floor(timeSeconds / 0.4) % 2 === 0 ? 750 : 1000;
 }
+
+function makeStub() {
+  const noop = () => {};
+  return {
+    available: false,
+    unlock: noop,
+    setSpeed: noop,
+    setWanted: noop,
+    setScreech: noop,
+    setDriving: noop,
+    shot: noop,
+    impact: noop,
+    pickup: noop,
+    blip: noop,
+    update: noop,
+  };
+}
+
+export function createAudioEngine() {
+  if (typeof window === 'undefined' || typeof window.AudioContext === 'undefined') {
+    return makeStub();
+  }
+  let ctx = null;
+  let master = null;
+  let droneOsc = null;
+  let engineOsc = null;
+  let engineGain = null;
+  let sirenOsc = null;
+  let sirenGain = null;
+  let screechSrc = null;
+  let screechGain = null;
+  let radioTimer = null;
+  let radioStep = 0;
+  let unlocked = false;
+  let speed = 0;
+  let wanted = 0;
+  let screeching = false;
+  let driving = false;
+
+  function noiseBuffer(seconds = 1) {
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  function tone(freq, dur, type = 'sine', gain = 0.2, when = 0) {
+    const t0 = ctx.currentTime + when;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  function startRadio() {
+    if (radioTimer !== null) return;
+    radioTimer = window.setInterval(() => {
+      if (!driving || speed < 2) return;
+      const note = PENTATONIC[RADIO_PATTERN[radioStep % RADIO_PATTERN.length]];
+      radioStep += 1;
+      tone(note, 0.26, 'triangle', 0.045);
+    }, RADIO_STEP_SECONDS * 1000);
+  }
+
+  function applySiren(timeSeconds) {
+    if (!sirenOsc) return;
+    sirenOsc.frequency.setTargetAtTime(sirenToneAt(timeSeconds), ctx.currentTime, 0.05);
+    sirenGain.gain.setTargetAtTime(wanted > 0 ? 0.05 : 0, ctx.currentTime, 0.1);
+  }
+
+  return {
+    available: true,
+    unlock() {
+      if (unlocked) return;
+      unlocked = true;
+      ctx = new window.AudioContext();
+      master = ctx.createGain();
+      master.gain.value = 0.9;
+      master.connect(ctx.destination);
+      // Ambient triangle drone (55 Hz + 82.5 Hz fifth).
+      droneOsc = ctx.createOscillator();
+      droneOsc.type = 'triangle';
+      droneOsc.frequency.value = 55;
+      const droneGain = ctx.createGain();
+      droneGain.gain.value = 0.04;
+      const drone2 = ctx.createOscillator();
+      drone2.type = 'triangle';
+      drone2.frequency.value = 82.5;
+      const drone2Gain = ctx.createGain();
+      drone2Gain.gain.value = 0.025;
+      droneOsc.connect(droneGain); droneGain.connect(master);
+      drone2.connect(drone2Gain); drone2Gain.connect(master);
+      droneOsc.start(); drone2.start();
+      // Engine hum: sawtooth through a lowpass, pitch follows speed.
+      engineOsc = ctx.createOscillator();
+      engineOsc.type = 'sawtooth';
+      engineOsc.frequency.value = engineFreq(0);
+      const engineFilter = ctx.createBiquadFilter();
+      engineFilter.type = 'lowpass';
+      engineFilter.frequency.value = 420;
+      engineGain = ctx.createGain();
+      engineGain.gain.value = 0;
+      engineOsc.connect(engineFilter); engineFilter.connect(engineGain); engineGain.connect(master);
+      engineOsc.start();
+      // Two-tone siren (silent until wanted > 0).
+      sirenOsc = ctx.createOscillator();
+      sirenOsc.type = 'square';
+      sirenOsc.frequency.value = 750;
+      sirenGain = ctx.createGain();
+      sirenGain.gain.value = 0;
+      sirenOsc.connect(sirenGain); sirenGain.connect(master);
+      sirenOsc.start();
+      // Tire screech: looped noise through a bandpass.
+      screechSrc = ctx.createBufferSource();
+      screechSrc.buffer = noiseBuffer(2);
+      screechSrc.loop = true;
+      const screechFilter = ctx.createBiquadFilter();
+      screechFilter.type = 'bandpass';
+      screechFilter.frequency.value = 900;
+      screechFilter.Q.value = 2.5;
+      screechGain = ctx.createGain();
+      screechGain.gain.value = 0;
+      screechSrc.connect(screechFilter); screechFilter.connect(screechGain); screechGain.connect(master);
+      screechSrc.start();
+      startRadio();
+    },
+    setSpeed(v) {
+      speed = v;
+      if (!ctx || !engineOsc) return;
+      engineOsc.frequency.setTargetAtTime(engineFreq(v), ctx.currentTime, 0.08);
+      engineGain.gain.setTargetAtTime(driving ? Math.min(0.09, 0.02 + Math.abs(v) * 0.003) : 0, ctx.currentTime, 0.1);
+    },
+    setWanted(n) {
+      wanted = n;
+      if (ctx) applySiren(ctx.currentTime);
+    },
+    // Per-frame tick: advances the two-tone siren alternation.
+    update(timeSeconds) {
+      if (ctx) applySiren(timeSeconds);
+    },
+    setScreech(on) {
+      screeching = on;
+      if (!ctx || !screechGain) return;
+      screechGain.gain.setTargetAtTime(on ? 0.12 : 0, ctx.currentTime, 0.05);
+    },
+    setDriving(on) {
+      driving = on;
+      if (!ctx || !engineGain) return;
+      engineGain.gain.setTargetAtTime(on ? Math.min(0.09, 0.02 + Math.abs(speed) * 0.003) : 0, ctx.currentTime, 0.1);
+    },
+    shot() {
+      if (!ctx) return;
+      // Short noise burst + a falling square blip.
+      const src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(0.12);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.25, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      src.connect(g); g.connect(master);
+      src.start();
+      const osc = ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(180, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.1);
+      const og = ctx.createGain();
+      og.gain.setValueAtTime(0.12, ctx.currentTime);
+      og.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.connect(og); og.connect(master);
+      osc.start(); osc.stop(ctx.currentTime + 0.12);
+    },
+    impact() {
+      if (!ctx) return;
+      tone(70, 0.25, 'sine', 0.35);
+      tone(45, 0.3, 'sine', 0.25, 0.02);
+    },
+    pickup() {
+      if (!ctx) return;
+      tone(660, 0.09, 'sine', 0.2);
+      tone(990, 0.14, 'sine', 0.2, 0.09);
+    },
+    blip() {
+      if (!ctx) return;
+      tone(880, 0.06, 'sine', 0.15);
+    },
+  };
 }
