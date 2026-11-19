@@ -1,149 +1,292 @@
-import * as THREE from './vendor/three.module.min.js';
-import {SUN_DIR} from './scene-detail.js';
+// PELABUHAN SENJA — shot staging (part 4). No three.js import here: every
+// 3D call goes through the api object main.js builds, so the pure helpers
+// below stay Node-testable and this module never touches the network.
+//
+// The four shots (see SHOT_SPECS) are staged through the game's own debug
+// handle: start the run, teleport the car / Raka / police / traffic to their
+// marks, point a fixed staging camera, refresh the HUD once, then freeze the
+// simulation so the frame the screenshot takes is exactly the staged one.
+// Shot 4 plays the Lighthouse Run for real (teleport through its two stages)
+// so the DELIVERY COMPLETE card is a genuine game state, not a mock.
 
-// Only the two cinematic URL presets use this loop; normal play is untouched.
-export function stageVehicleShot(name, {world, player, actor, camera, missions}) {
-  const chase = name === 'chase';
-  // Low hero angles: drive is a TRUE front-3/4 at ~37 degrees off the nose
-  // (camera ahead of the nose and 4.5 to its left, FOV 40) so the long hood,
-  // LED strips, splitter and grille all face the camera; chase is a rear
-  // chase cam pulled back and up (FOV 46) so the container no longer fills
-  // half the frame and both interceptors read separately.
-  camera.fov=chase?46:40;camera.updateProjectionMatrix();
-  const car = chase ? world.chaseTruck : world.cars.find(c => c.userData.traffic);
-  player.vehicle = car;
-  player.mode = 'drive';
-  player.wanted = chase ? 3 : 0;
-  actor.visible = false;
-  car.userData.traffic = null;
-  car.userData.parked = false;
-  car.userData.speed = chase ? 10.8 : 13.4;
-  missions.index = chase ? 2 : 0;
-  missions.state = 'active';
-  // Raka drives: seat him in the driver's seat before the model is aligned.
-  world.shotDriver = world.addDriver(car, 1);
-  if(!chase){
-    // Lit cabin so Raka reads through the lighter glass: a warm point light
-    // above the driver, carried by the driver group itself.
-    const cabinLight=new THREE.PointLight('#ffe2b0',0.9,3,2);
-    cabinLight.position.set(0,1.0,0.15);
-    world.shotDriver.add(cabinLight);
-  }
-  // Vehicle geometry was authored along +X, while driving uses +Z.
-  const align = object => {
-    const model = new THREE.Group();
-    for (const child of [...object.children]) model.add(child);
-    model.rotation.y = -Math.PI / 2;
-    object.add(model);
-    return model;
-  };
-  align(car);
-  const cops = chase ? [world.addPolice(30.5,40,true),world.addPolice(39.5,41,true)] : [];
-  cops.forEach(align);
-  const traffic = world.cars.find(c => c !== car && c.userData.traffic);
-  traffic.userData.traffic = null;
-  align(traffic);
-  const props = new THREE.Group();
-  props.name = 'harbor-shot-details';
-  world.scene.add(props);
-  // Place existing drifting cloud banks on the horizon of these two presets.
-  world.clouds[0].position.set(-20,28,165);
-  world.clouds[1].position.set(66,34,192);
-  world.clouds[2].position.set(8,41,210);
-  function box(color,x,y,z,w,h,d) {
-    const item = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.8}));
-    item.position.set(x,y,z);item.castShadow=true;item.receiveShadow=true;props.add(item);return item;
-  }
-  if(chase) {
-    // Crates and a dock crane ahead of the truck, inside the rear chase
-    // camera's view down the waterfront road.
-    for(let i=0;i<4;i++) {
-      const x=15+i*13,z=58+(i%2)*8,gy=world.height(x,z),color=['#9a5140','#557b7d','#b79b59','#65765b'][i];
-      box(color,x,gy+1.7,z,10,3.4,4);
-      for(let rib=0;rib<15;rib++)box('#394f4e',x-4.6+rib*.66,gy+1.7,z-2.03,.055,3.1,.06);
-    }
-    box('#b18c50',70,12,62,.7,22,.7);box('#c4a269',58,23,62,26,.7,.7);
-    box('#917447',46,17,62,.1,12,.1);box('#514b3d',46,10.7,62,1.2,.7,.3);
-    const brace=box('#b18c50',64,18,62,.35,14,.35);brace.rotation.z=-.85;
-  }
-  let time=0;
-  const tick = dt => {
-    time+=dt;
-    const z=(chase?36:-23)+(time*car.userData.speed)%8;
-    car.position.set(35,1.28,z);car.rotation.y=0;
-    player.position.copy(car.position);player.rotation=0;
-    if(chase){
-      // Oncoming car ahead in the right lane, facing the camera. It sits
-      // four units ahead of the harbor crates so its center ray clears the
-      // crate ribs, and in the gap between the trailing interceptor and the
-      // truck so no vehicle hides another.
-      traffic.position.set(38,1.28,z+12);traffic.rotation.y=Math.PI;
-    }else{
-      // Traffic car behind the hero coupe, facing the camera, inside the
-      // FOV 40 frame as a full body in the background.
-      traffic.position.set(34,1.28,z-8);traffic.rotation.y=0;
-    }
-    cops.forEach((cop,i)=>{
-      // Interceptors split across the truck: one ahead in the left lane, one
-      // trailing in the right lane, so each center ray clears the container
-      // and the two cars never overlap in frame.
-      cop.position.set(i?39.5:30.5,1.28,z+(i?-2:6));cop.rotation.y=0;
-      cop.traverse(part=>{if(part.userData.siren){
-        const on=Math.sin(time*14+i*Math.PI+(part.position.z<0?0:Math.PI))>0;
-        part.material.color.set(part.position.z<0?'#ff3434':'#3884ff');
-        part.material.color.multiplyScalar(on?3:.28);
-      }});
-    });
-    // Low cameras, close to the action: the driver reads large through the
-    // windshield and side glass, and the truck cab past the container.
-    // Drive: camera ahead of the nose, 4.5 to its left — a true front-3/4.
-    // Chase: pulled back and up so the container shrinks and both cops fit.
-    if(chase){camera.position.set(36,3.0,z-14);camera.lookAt(35,1.8,z+3)}
-    else{camera.position.set(30.5,1.7,z+6);camera.lookAt(35,1.2,z+0.5)}
-    camera.updateMatrixWorld(true);
-  };
-  tick(0);
-  return {tick,car,cops,traffic,props};
+export const SHOT_SPECS = [
+  {
+    n: 1, name: 'start', file: '1-start.jpg', fov: 57,
+    desc: 'Low street-level title view down the avenue toward the sun; Raka readable.',
+  },
+  {
+    n: 2, name: 'drive', file: '2-drive.jpg', fov: 40,
+    desc: 'Low front-3/4 hero, long hood, Raka clearly readable in the brightened cabin.',
+  },
+  {
+    n: 3, name: 'chase', file: '3-chase.jpg', fov: 55,
+    desc: 'Low rear chase behind the truck, both interceptors separate, red traffic car.',
+  },
+  {
+    n: 4, name: 'victory', file: '4-victory.jpg', fov: 57,
+    desc: 'Low-angle up at Raka on the lighthouse hill, lamp room in frame.',
+  },
+];
+
+// --- Pure helpers (Node-testable) -----------------------------------------
+
+export function ndcInFrame(ndc, margin = 0.9) {
+  return Math.abs(ndc.x) <= margin && Math.abs(ndc.y) <= margin && ndc.z < 1;
 }
 
-// Read-only visibility evidence for the capture harness; no pixels are modified.
-export function inspectShot(world,camera,player,shot) {
-  world.scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
-  const project=v=>{const p=v.clone().project(camera);return [(p.x+1)*innerWidth/2,(1-p.y)*innerHeight/2,p.z]};
-  const inspect=object=>{
-    if(!object)return null;
-    const b=new THREE.Box3().setFromObject(object),points=[];
-    for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z])points.push(project(new THREE.Vector3(x,y,z)));
-    const bounds=[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1]))];
-    const center=b.getCenter(new THREE.Vector3()),ray=new THREE.Raycaster(camera.position,center.clone().sub(camera.position).normalize());ray.camera=camera;
-    const hit=ray.intersectObjects(world.scene.children,true).find(h=>h.object.visible&&h.object.material?.depthWrite!==false);
-    let belongs=false;for(let o=hit?.object;o;o=o.parent)if(o===object)belongs=true;
-    let blockedBy=null;
-    if(hit&&!belongs){const chain=[];for(let o=hit.object;o;o=o.parent){const p=new THREE.Vector3();o.getWorldPosition?.(p);chain.push(`${o.type}@${p.toArray().map(v=>+v.toFixed(1)).join(',')}`);if(!o.parent||o.parent===world.scene)break}blockedBy={dist:+hit.distance.toFixed(2),point:hit.point.toArray().map(v=>+v.toFixed(2)),chain,mat:hit.object.material?.color?('#'+hit.object.material.color.getHexString()):null,transparent:!!hit.object.material?.transparent}}
-    return {bounds:bounds.map(v=>+v.toFixed(2)),center:project(center),visible:belongs,position:object.position.toArray(),blockedBy};
-  };
-  const lights=[];for(const cop of shot?.cops||[])cop.traverse(p=>{if(p.userData.siren)lights.push(p.material.color.toArray())});
-  const inFrame=o=>o&&o.visible&&o.center[2]>-1&&o.center[2]<1&&o.center[0]>0&&o.center[0]<innerWidth&&o.center[1]>0&&o.center[1]<innerHeight;
-  const trees=world.scene.children.filter(g=>g.isGroup&&g.userData.palm);
-  const buildings=world.scene.children.filter(g=>g.isGroup&&world.buildings.some(b=>b.w&&b.x===g.position.x&&b.z===g.position.z));
-  const markings=world.scene.children.filter(m=>m.isMesh&&m.geometry?.type==='BoxGeometry'&&m.position.y>=1.13&&m.position.y<=1.15);
-  const landmarks={palms:trees.map(inspect).filter(inFrame).length,buildings:buildings.map(inspect).filter(inFrame).length,laneMarkings:markings.map(inspect).filter(inFrame).length,harborProps:(shot?.props.children||[]).map(inspect).filter(inFrame).length,clouds:world.clouds.map(inspect).filter(inFrame).length,hillGrass:(world.hillGrassPositions||[]).map(p=>project(new THREE.Vector3(p[0],p[1]+.4,p[2]))).filter(v=>v[0]>0&&v[0]<innerWidth&&v[1]>0&&v[1]<innerHeight&&v[2]>-1&&v[2]<1).length};
-  // Raka: project head + torso and check line-of-sight (transparent glass does not block).
-  const rakaObj=world.shotDriver;
-  let headWorld,torsoWorld;
-  if(rakaObj&&rakaObj.userData.head){headWorld=new THREE.Vector3();rakaObj.userData.head.getWorldPosition(headWorld);torsoWorld=new THREE.Vector3();rakaObj.userData.torso.getWorldPosition(torsoWorld)}
-  else{headWorld=new THREE.Vector3(player.position.x,player.position.y+1.72,player.position.z);torsoWorld=new THREE.Vector3(player.position.x,player.position.y+1.12,player.position.z)}
-  const head2d=project(headWorld),torso2d=project(torsoWorld);
-  const rayDir=headWorld.clone().sub(camera.position).normalize();
-  const ray=new THREE.Raycaster(camera.position,rayDir);ray.camera=camera;ray.far=camera.position.distanceTo(headWorld);
-  const blocker=ray.intersectObjects(world.scene.children,true).find(h=>{if(!h.object.visible)return false;const m=h.object.material;if(m&&m.transparent)return false;if(h.point.distanceTo(headWorld)<0.35)return false;for(let o=h.object;o;o=o.parent)if(o===rakaObj)return false;return true});
-  const raka={head:head2d.slice(0,2).map(v=>+v.toFixed(1)),torso:torso2d.slice(0,2).map(v=>+v.toFixed(1)),headWorld:headWorld.toArray().map(v=>+v.toFixed(2)),inFrame:head2d[0]>=0&&head2d[0]<=innerWidth&&head2d[1]>=0&&head2d[1]<=innerHeight&&head2d[2]>-1&&head2d[2]<1,visible:!blocker};
-  // Nose vs tail screen positions: the staged car's forward is world +Z
-  // (rotation.y=0 after align), so the nose is the +Z end. A front-3/4 hero
-  // reads with the nose on the camera side of the frame, ahead of the tail.
-  let nose=null,tail=null;
-  if(shot?.car){const half=(shot.car.userData.length||5.2)/2;const cp=shot.car.position;
-    nose=project(new THREE.Vector3(cp.x,cp.y+.6,cp.z+half)).map(v=>+v.toFixed(1));
-    tail=project(new THREE.Vector3(cp.x,cp.y+.6,cp.z-half)).map(v=>+v.toFixed(1));}
-  return {camera:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov,car:inspect(shot?.car),police:(shot?.cops||[]).map(inspect),traffic:inspect(shot?.traffic),nose,tail,speed:player.vehicle?.userData.speed||0,wanted:player.wanted,lights,landmarks,clouds:world.clouds.map(c=>c.position.toArray()),sun:project(camera.position.clone().add(SUN_DIR.clone().multiplyScalar(400))),raka};
+// True when two screen-space boxes (each {x, y, w, h} in NDC, centred) do
+// not overlap — used for the interceptor-separation and card checks.
+export function boxesDisjoint(a, b) {
+  return Math.abs(a.x - b.x) * 2 >= a.w + b.w || Math.abs(a.y - b.y) * 2 >= a.h + b.h;
+}
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function waitFor(cond, timeoutMs, label) {
+  const start = Date.now();
+  for (;;) {
+    if (cond()) return;
+    if (Date.now() - start > timeoutMs) throw new Error(`stage timeout: ${label}`);
+    await sleep(120);
+  }
+}
+
+// --- Staging ---------------------------------------------------------------
+
+// Camera helper: eye sits a fixed height above the terrain at (x, z) so the
+// shot survives the avenue's undulation; the look target is an absolute point.
+function camAt(api, x, z, eye, tx, ty, tz, fov) {
+  api.stageCam(x, api.heightAt(x, z) + eye, z, tx, ty, tz, fov);
+}
+
+export async function stageShot(n, api) {
+  const spec = SHOT_SPECS.find((s) => s.n === n);
+  if (!spec) throw new Error(`unknown shot ${n}`);
+  api.clearStageCam();
+  api.setFreeze(false);
+
+  if (n === 1) {
+    // Title screen, world rendering behind it. Raka stands on the avenue's
+    // south edge ahead of the camera, facing it, big enough to read and
+    // left of the centred title text.
+    api.placeRaka(-62, -5.5, Math.PI / 2 + 0.3, false);
+    camAt(api, -42, 0, 1.9, -80, -2, -30, spec.fov);
+    api.setFreeze(true);
+    return spec;
+  }
+
+  // Shots 2-4 play the game: start a NORMAL run first.
+  api.startGame('NORMAL');
+  await waitFor(() => api.phase() === 'playing', 30000, 'run to start');
+
+  if (n === 2) {
+    // Hero: the coupe on the avenue heading east, camera low at the front
+    // left quarter so the long hood leads and the open tub shows Raka.
+    api.setDrive(-20, 0, Math.PI / 2);
+    const gy = api.heightAt(-20, 0);
+    camAt(api, -13.5, 4.8, 1.35, -20.5, gy + 0.85, 0, spec.fov);
+    api.refreshHUD();
+    api.setFreeze(true);
+    return spec;
+  }
+
+  if (n === 3) {
+    // Chase: player car behind the truck on the avenue, both interceptors
+    // staggered on opposite lanes, heat on so the light bars run hot.
+    api.setWanted(2);
+    api.setDrive(-60, 0, Math.PI / 2);
+    api.setTrafficPos(2, -38, 0, Math.PI / 2); // truck, ahead centre
+    api.setTrafficPos(1, -47, 0, Math.PI / 2); // red convertible, centre lane between player and truck
+    api.setPolicePos(0, -48, -4.5, Math.PI / 2); // UNIT-7, left lane
+    api.setPolicePos(1, -54, 4.5, Math.PI / 2); // TARPON-10, right lane
+    api.setLightBarsHot();
+    camAt(api, -72, 0, 2.0, -28, api.heightAt(-38, 0) + 1.6, 0, spec.fov);
+    api.refreshHUD();
+    api.setFreeze(true);
+    return spec;
+  }
+
+  // Shot 4: play the Lighthouse Run for real. Teleport through both stages;
+  // the second one completes the mission and raises the DELIVERY COMPLETE
+  // card. Then Raka steps out onto the hill slope, arms raised, under the lamp.
+  api.setMission(4);
+  api.setDrive(78, -62, Math.PI / 2);
+  await waitFor(() => api.game().stageIndex >= 1, 30000, 'hill-road stage');
+  api.setDrive(105, -95, Math.PI / 2);
+  await waitFor(() => api.phase() === 'card', 30000, 'lighthouse completion');
+  api.hideDialogue();
+  // Raka on the upper slope below the lamp, arms raised, facing the camera
+  // down the hill. Camera close on the slope looking up: Raka reads big,
+  // the lamp towers above him, and the hillside buildings stay out of frame.
+  api.setFoot(100, -90, -0.62);
+  api.placeRaka(100, -90, -0.62, true);
+  camAt(api, 90, -76, 2.0, 95, 48, -105, spec.fov);
+  api.refreshHUD();
+  api.setFreeze(true);
+  return spec;
+}
+
+// --- In-page assertions (browser only; api.THREE is the page's three) ------
+
+function project(api, v) {
+  const vec = new api.THREE.Vector3(v.x, v.y, v.z);
+  vec.project(api.camera);
+  return { x: vec.x, y: vec.y, z: vec.z };
+}
+
+function worldPosOf(api, obj, x = 0, y = 0, z = 0) {
+  const v = new api.THREE.Vector3(x, y, z);
+  obj.updateWorldMatrix(true, false);
+  return obj.localToWorld(v);
+}
+
+// Raycast from the camera to a world point: clear when no OPAQUE object
+// stands between (transparent glass, glow sprites and the beacon are ignored).
+function raycastClear(api, target) {
+  const from = api.camera.position.clone();
+  const to = new api.THREE.Vector3(target.x, target.y, target.z);
+  const dir = to.clone().sub(from);
+  const dist = dir.length();
+  dir.normalize();
+  // Sprites (sun glow, light-bar halos) raycast against raycaster.camera,
+  // and matrixWorlds must be current — refresh both before intersecting.
+  api.scene.updateMatrixWorld(true);
+  const ray = new api.THREE.Raycaster(from, dir, 0.1, dist + 5);
+  ray.camera = api.camera;
+  const hits = ray.intersectObjects(api.scene.children, true);
+  for (const hit of hits) {
+    let o = hit.object;
+    let transparent = false;
+    let selfHit = false;
+    while (o) {
+      if (o === api._targetRoot) { selfHit = true; break; }
+      const m = o.material;
+      if (m && m.transparent) { transparent = true; break; }
+      o = o.parent;
+    }
+    if (selfHit) continue; // the target's own body never occludes itself
+    if (transparent) continue;
+    if (hit.distance < dist - 0.4) {
+      return {
+        clear: false, blocker: hit.object.type, at: +hit.distance.toFixed(1),
+        dist: +dist.toFixed(1),
+        point: [+hit.point.x.toFixed(1), +hit.point.y.toFixed(1), +hit.point.z.toFixed(1)],
+      };
+    }
+  }
+  return { clear: true, dist: +dist.toFixed(1) };
+}
+
+function ndcBox(api, centre, halfW, halfH) {
+  const p = project(api, centre);
+  return { ndc: p, box: { x: p.x, y: p.y, w: halfW * 2, h: halfH * 2 } };
+}
+
+export function assertShot(n, api) {
+  const out = { shot: n, checks: {}, ndc: {} };
+  const check = (name, ok, detail) => { out.checks[name] = { ok: !!ok, ...(detail ?? {}) }; };
+
+  if (n === 1) {
+    const head = worldPosOf(api, api.objects.raka, 0, 1.58, 0);
+    const p = project(api, head);
+    out.ndc.rakaHead = p;
+    check('rakaInFrame', ndcInFrame(p, 0.85), p);
+    check('rakaVisible', raycastClear(api, head).clear, raycastClear(api, head));
+    const title = document.querySelector('.title-main');
+    check('titleVisible', !!title && title.offsetParent !== null, {
+      text: title ? title.textContent.replace(/\s+/g, ' ').trim() : null,
+    });
+    return out;
+  }
+
+  if (n === 2) {
+    const driver = api.objects.driver;
+    const head = worldPosOf(api, driver, 0, 1.02, 0.02);
+    const p = project(api, head);
+    out.ndc.driverHead = p;
+    api._targetRoot = driver;
+    const rc = raycastClear(api, head);
+    api._targetRoot = null;
+    check('driverInFrame', ndcInFrame(p, 0.85), p);
+    check('driverVisible', rc.clear, rc);
+    check('fov40', Math.abs(api.camera.fov - 40) < 1, { fov: api.camera.fov });
+    const nose = worldPosOf(api, api.objects.coupe, 0, 0.7, 2.6);
+    out.ndc.coupeNose = project(api, nose);
+    check('noseInFrame', ndcInFrame(out.ndc.coupeNose, 0.9));
+    return out;
+  }
+
+  if (n === 3) {
+    const bars = [];
+    for (let i = 0; i < 2; i += 1) {
+      const bar = worldPosOf(api, api.objects.interceptors[i], 0, 1.2, -0.45);
+      const p = project(api, bar);
+      out.ndc[`interceptor${i}`] = p;
+      check(`interceptor${i}InFrame`, ndcInFrame(p, 0.9), p);
+      api._targetRoot = api.objects.interceptors[i];
+      const rc = raycastClear(api, bar);
+      api._targetRoot = null;
+      check(`interceptor${i}Visible`, rc.clear, rc);
+      bars.push({ x: p.x, y: p.y, w: 0.34, h: 0.2 });
+    }
+    check('interceptorsSeparate', boxesDisjoint(bars[0], bars[1]), {
+      dx: +(bars[0].x - bars[1].x).toFixed(2),
+    });
+    const red = worldPosOf(api, api.objects.traffic[1], 0, 1.0, 0);
+    out.ndc.redTraffic = project(api, red);
+    check('redTrafficInFrame', ndcInFrame(out.ndc.redTraffic, 0.9));
+    const truck = worldPosOf(api, api.objects.traffic[2], 0, 1.5, 0);
+    out.ndc.truck = project(api, truck);
+    check('truckInFrame', ndcInFrame(out.ndc.truck, 0.9));
+    return out;
+  }
+
+  // Shot 4.
+  const head = worldPosOf(api, api.objects.raka, 0, 1.58, 0);
+  const p = project(api, head);
+  out.ndc.rakaHead = p;
+  check('rakaInFrame', ndcInFrame(p, 0.9), p);
+  api._targetRoot = api.objects.raka;
+  const rc = raycastClear(api, head);
+  api._targetRoot = null;
+  check('rakaVisible', rc.clear, rc);
+  const lamp = api.lampPos();
+  const lp = project(api, lamp);
+  out.ndc.lampRoom = lp;
+  check('lampInFrame', ndcInFrame(lp, 0.9), lp);
+  const card = document.querySelector('.hud-center');
+  const cardVisible = !!card && card.style.display !== 'none'
+    && card.textContent.includes('DELIVERY COMPLETE');
+  check('completeCardVisible', cardVisible);
+  if (cardVisible && card) {
+    // Both Raka and the lamp room must sit clear of the centred card rect.
+    const r = card.getBoundingClientRect();
+    const cardNdc = {
+      x0: (r.left / window.innerWidth) * 2 - 1,
+      x1: (r.right / window.innerWidth) * 2 - 1,
+      y0: 1 - (r.bottom / window.innerHeight) * 2,
+      y1: 1 - (r.top / window.innerHeight) * 2,
+    };
+    const outside = (q) => q.x < cardNdc.x0 || q.x > cardNdc.x1 || q.y < cardNdc.y0 || q.y > cardNdc.y1;
+    check('rakaClearOfCard', outside(p), { x: +p.x.toFixed(2), y: +p.y.toFixed(2), cardNdc });
+    check('lampClearOfCard', outside(lp), { x: +lp.x.toFixed(2), y: +lp.y.toFixed(2), cardNdc });
+  } else {
+    check('rakaClearOfCard', false, { reason: 'complete card missing' });
+    check('lampClearOfCard', false, { reason: 'complete card missing' });
+  }
+  const mission = document.querySelector('.hud-mission');
+  if (cardVisible && mission) {
+    const a = card.getBoundingClientRect();
+    const b = mission.getBoundingClientRect();
+    const overlap = !(a.right < b.left || b.right < a.left || a.bottom < b.top || b.bottom < a.top);
+    check('noCardOverlap', !overlap, {
+      card: [Math.round(a.left), Math.round(a.top), Math.round(a.width), Math.round(a.height)],
+      mission: [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)],
+    });
+  } else {
+    check('noCardOverlap', false, { reason: 'card or mission card missing' });
+  }
+  return out;
 }
