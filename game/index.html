@@ -1,17 +1,82 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PELABUHAN SENJA — coastal open-world crime game</title>
-<link rel="stylesheet" href="./style.css">
+<title>PELABUHAN SENJA — open-world crime di tepi laut</title>
 <link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<canvas id="game" aria-label="Pelabuhan Senja: an open-world crime game in a coastal port city at dusk"></canvas>
-<div id="hud" aria-hidden="true"></div>
-<div id="title" aria-hidden="true"></div>
+<canvas id="game" aria-label="Pelabuhan Senja: kendarai mobil menyusuri kota pelabuhan saat senja"></canvas>
+
+<div id="hud" class="hidden" aria-hidden="false">
+  <div id="hud-title">PELABUHAN SENJA</div>
+  <div id="hud-wanted" class="hidden" aria-label="Tingkat buronan"></div>
+  <div id="hud-cash">$250</div>
+  <div id="hud-objective">
+    <div id="hud-job">KRU SENJA</div>
+    <div id="hud-objective-text">Tekan Enter — malam dimulai di Dermaga 2.</div>
+    <div id="hud-distance"></div>
+  </div>
+  <canvas id="hud-minimap" width="190" height="190" aria-label="Peta kota"></canvas>
+  <div id="hud-dialogue" class="hidden" aria-live="polite"></div>
+  <div id="hud-bars">
+    <div class="hud-bar"><span>NYAWA</span><div class="bar"><div id="hud-health"></div></div></div>
+    <div class="hud-bar"><span>ROMPI</span><div class="bar"><div id="hud-armour"></div></div></div>
+  </div>
+  <div id="hud-speed">0 km/j</div>
+  <div id="hud-hint">Tekan Enter untuk mengemudi</div>
+  <div id="crosshair" class="hidden" aria-hidden="true">+</div>
+  <div id="mute-badge" class="hidden" aria-label="Suara dimatikan">SUARA MATI · M</div>
+</div>
+
+<div id="pause" class="hidden" role="dialog" aria-labelledby="pause-title">
+  <div class="pause-card">
+    <h2 id="pause-title">JEDA</h2>
+    <p>Kota menunggu. Progresmu aman di tangan Kru Senja.</p>
+    <button id="pause-resume" type="button">LANJUTKAN</button>
+    <button id="pause-save" type="button">SIMPAN PROGRES</button>
+    <button id="pause-mute" type="button">SUARA: NYALA</button>
+    <p id="pause-saved" class="hidden">Tersimpan — sampai jumpa lagi, Senja.</p>
+    <p class="pause-controls">Esc — lanjut &nbsp;·&nbsp; F — tembak &nbsp;·&nbsp; E — keluar/masuk mobil &nbsp;·&nbsp; M — bisu</p>
+  </div>
+</div>
+
+<div id="menu" role="dialog" aria-labelledby="menu-title">
+  <div class="menu-card">
+    <p class="menu-kicker">KOTA PELABUHAN · SENJA · SATU MALAM PANJANG</p>
+    <h1 id="menu-title">PELABUHAN<br>SENJA</h1>
+    <p class="menu-sub">Open-world crime di tepi laut. Ambil mobil, susuri boulevard
+    pantai dan jalan pasar, dan rasakan kota ini sebelum malam turun.</p>
+    <div class="menu-brief">
+      <p class="menu-job">JOB 1 — SENJA RUN &nbsp;·&nbsp; $400</p>
+      <p class="menu-brief-text">“Paket sudah di Dermaga 2. Ambil sebelum kapal terakhir
+      berangkat.” — Ikuti penanda kuning di peta, jemput paketnya, dan jangan
+      sampai polisi mencium baunya.</p>
+    </div>
+    <button id="menu-start" type="button">MULAI MENGEMUDI</button>
+    <p class="menu-controls">WASD / panah — mengemudi &nbsp;·&nbsp; Spasi — rem
+    &nbsp;·&nbsp; R — kembali ke awal &nbsp;·&nbsp; F / klik — tembak &nbsp;·&nbsp; E — jalan kaki
+    &nbsp;·&nbsp; M — bisu &nbsp;·&nbsp; Esc — jeda &nbsp;·&nbsp; Seret mouse — intip sekitar mobil</p>
+  </div>
+</div>
+
+<div id="busted" class="hidden" role="alert">
+  <div class="busted-card">
+    <h2>TERTANGKAP!</h2>
+    <p>Polisi Pelabuhan Senja menangkapmu. Panasmu padam — tapi kota ini tidak lupa.</p>
+  </div>
+</div>
+
+<div id="wrecked" class="hidden" role="alert">
+  <div class="wrecked-card">
+    <h2>MOBIL HANCUR!</h2>
+    <p>Kru Senja menarikmu keluar dari reruntuhan. Job diulang — mobil diganti.</p>
+  </div>
+</div>
+
 <p id="status" role="status" aria-live="polite"></p>
-<script type="module" src="./main.js"></script>
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>
