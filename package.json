@@ -1,1 +1,0 @@
-{"description":"PELABUHAN SENJA — coastal open-world crime game (make.fun gta6-01)","name":"pelabuhan-senja","private":true,"scripts":{"serve":"node serve.ts","test":"node --test"},"type":"module","version":"3.0.0"}
